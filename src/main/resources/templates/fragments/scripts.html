@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+    <div th:fragment="scripts">
+        <!-- Custom JavaScript -->
+        <script th:src="@{/js/app.js}"></script>
+
+        <!-- HTMX extensions -->
+        <script>
+            // Add any HTMX event listeners here
+            document.body.addEventListener('htmx:configRequest', (event) => {
+                // Add CSRF token to HTMX requests if needed
+                // event.detail.headers['X-CSRF-TOKEN'] = '...';
+            });
+
+            // Notification system
+            document.body.addEventListener('showMessage', (event) => {
+                const message = event.detail.message;
+                const type = event.detail.type || 'info';
+
+                // Create notification element
+                const notification = document.createElement('div');
+                notification.className = `fixed top-4 right-4 px-4 py-3 rounded-lg shadow-lg z-50 transition-opacity duration-500 ease-in-out ${
+                    type === 'error' ? 'bg-red-500 text-white' :
+                    type === 'success' ? 'bg-green-500 text-white' :
+                    'bg-blue-500 text-white'
+                }`;
+                notification.innerHTML = `
+                    <div class="flex items-center">
+                        <div class="flex-grow">${message}</div>
+                        <button class="ml-4 focus:outline-none" onclick="this.parentElement.parentElement.remove()">
+                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+                `;
+
+                // Add to DOM
+                document.body.appendChild(notification);
+
+                // Auto remove after 5 seconds
+                setTimeout(() => {
+                    notification.style.opacity = '0';
+                    setTimeout(() => notification.remove(), 500);
+                }, 5000);
+            });
+        </script>
+    </div>
+</body>
+</html>
