@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/head :: head('Analyzer - Dashboard')}">
+</head>
+<body class="flex flex-col min-h-screen bg-gray-50">
+    <div th:replace="~{fragments/header :: header}"></div>
+
+    <main class="flex-grow container mx-auto px-4 py-8">
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h1 class="text-2xl font-bold text-gray-800 mb-4">Welcome to Your Dashboard</h1>
+            <p class="text-gray-600 mb-2">Hello, <span th:text="${email}" class="font-medium">user@example.com</span>!</p>
+            <p class="text-gray-600">This is your personal dashboard where you can manage your data and analytics.</p>
+
+            <!-- Authentication Status -->
+            <div class="mt-4 p-4 rounded-lg" th:classappend="${isAuthenticated} ? 'bg-green-50' : 'bg-red-50'">
+                <p class="font-medium" th:classappend="${isAuthenticated} ? 'text-green-700' : 'text-red-700'">
+                    Authentication Status: <span th:text="${isAuthenticated} ? 'Authenticated' : 'Not Authenticated'"></span>
+                </p>
+                <p th:if="${authorities}" class="text-sm mt-1 text-gray-600">
+                    Roles: <span th:text="${authorities}"></span>
+                </p>
+                <div th:if="${!isAuthenticated}" class="mt-2">
+                    <p class="text-red-700 text-sm">You are not properly authenticated. Please try logging in again.</p>
+                    <a href="/auth/login" class="mt-2 inline-block px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
+                        Go to Login
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Analytics Card -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex items-center mb-4">
+                    <div class="bg-indigo-100 p-3 rounded-full mr-4">
+                        <svg class="h-6 w-6 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                        </svg>
+                    </div>
+                    <h2 class="text-xl font-semibold text-gray-800">Analytics</h2>
+                </div>
+                <p class="text-gray-600 mb-4">View detailed analytics and insights about your data.</p>
+                <a href="#" class="text-indigo-600 hover:text-indigo-800 font-medium">View Analytics →</a>
+            </div>
+
+            <!-- Reports Card -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex items-center mb-4">
+                    <div class="bg-green-100 p-3 rounded-full mr-4">
+                        <svg class="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                    </div>
+                    <h2 class="text-xl font-semibold text-gray-800">Reports</h2>
+                </div>
+                <p class="text-gray-600 mb-4">Generate and download reports from your data.</p>
+                <a href="#" class="text-green-600 hover:text-green-800 font-medium">Generate Reports →</a>
+            </div>
+
+            <!-- Settings Card -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex items-center mb-4">
+                    <div class="bg-blue-100 p-3 rounded-full mr-4">
+                        <svg class="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                    </div>
+                    <h2 class="text-xl font-semibold text-gray-800">Settings</h2>
+                </div>
+                <p class="text-gray-600 mb-4">Manage your account settings and preferences.</p>
+                <a href="#" class="text-blue-600 hover:text-blue-800 font-medium">Update Settings →</a>
+            </div>
+        </div>
+    </main>
+
+    <div th:replace="~{fragments/footer :: footer}"></div>
+    <div th:replace="~{fragments/scripts :: scripts}"></div>
+</body>
+</html>

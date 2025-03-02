@@ -5,11 +5,43 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title th:text="${title}">Analyzer App</title>
 
-    <!-- Tailwind CSS via CDN for development -->
+    <!-- CSRF tokens for AJAX/HTMX requests -->
+    <meta name="_csrf" th:content="${_csrf?.token}">
+    <meta name="_csrf_header" th:content="${_csrf != null ? _csrf.headerName : 'X-CSRF-TOKEN'}">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" th:href="@{/favicon.ico}">
+
+    <!-- Tailwind CSS via CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            200: '#bae6fd',
+                            300: '#7dd3fc',
+                            400: '#38bdf8',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                            800: '#075985',
+                            900: '#0c4a6e',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
 
     <!-- HTMX -->
     <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+
+    <!-- Add HTMX extensions -->
+    <script src="https://unpkg.com/htmx.org/dist/ext/response-targets.js"></script>
 
     <!-- Alpine.js for interactive components -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.5/dist/cdn.min.js"></script>
@@ -17,6 +49,35 @@
     <!-- Custom styles -->
     <style>
         [x-cloak] { display: none !important; }
+
+        /* Fix for mobile responsiveness */
+        @media (max-width: 768px) {
+            .container {
+                padding-left: 1rem;
+                padding-right: 1rem;
+            }
+        }
+
+        /* Custom utility classes */
+        .btn {
+            @apply px-4 py-2 rounded-md transition-colors;
+        }
+
+        .btn-primary {
+            @apply bg-indigo-600 text-white hover:bg-indigo-700;
+        }
+
+        .btn-secondary {
+            @apply bg-white text-indigo-600 border border-indigo-200 hover:bg-indigo-50;
+        }
+
+        .card {
+            @apply bg-white rounded-lg shadow-md p-6;
+        }
+
+        .form-input {
+            @apply w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent;
+        }
     </style>
 </head>
 <body>

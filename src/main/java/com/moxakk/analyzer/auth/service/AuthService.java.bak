@@ -174,22 +174,10 @@ public class AuthService {
      */
     public void logout(String accessToken) {
         try {
-            if (accessToken == null || accessToken.isEmpty()) {
-                log.warn("Attempted to logout with null or empty token");
-                return; // Just return without error if no token
-            }
-
-            log.info("Attempting to sign out user from Supabase");
             supabaseAuthClient.signOut(accessToken).block();
-            log.info("User successfully signed out from Supabase");
-        } catch (org.springframework.web.reactive.function.client.WebClientResponseException.Forbidden e) {
-            // Token is likely invalid or expired, which is fine for logout
-            log.warn("Token was rejected during logout (403 Forbidden). User may already be logged out: {}", e.getMessage());
-            // Don't rethrow - we still want to clear local session
         } catch (Exception e) {
-            log.error("Logout failed with unexpected error", e);
-            // Don't throw exception for logout failures - just log it
-            // This ensures the user can still log out locally even if Supabase call fails
+            log.error("Logout failed", e);
+            throw new RuntimeException("Logout failed: " + e.getMessage(), e);
         }
     }
 

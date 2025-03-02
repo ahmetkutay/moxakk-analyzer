@@ -1,17 +1,18 @@
 package com.moxakk.analyzer.auth.util;
 
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.security.Keys;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
-
 import java.security.Key;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.Keys;
 
 @Component
 public class JwtUtil {
@@ -55,8 +56,8 @@ public class JwtUtil {
 
     // Check if token is expired
     private Boolean isTokenExpired(String token) {
-        final Date expiration = getExpirationDateFromToken(token);
-        return expiration.before(new Date());
+        final Date expirationDate = getExpirationDateFromToken(token);
+        return expirationDate.before(new Date());
     }
 
     // Generate token for user
@@ -79,8 +80,18 @@ public class JwtUtil {
     // Validate token
     public Boolean validateToken(String token) {
         try {
+            // Parse the token to verify signature
+            Jwts.parserBuilder()
+                .setSigningKey(getSigningKey())
+                .build()
+                .parseClaimsJws(token);
+
+            // Check if token is expired
             return !isTokenExpired(token);
-        } catch (Exception e) {
+        } catch (io.jsonwebtoken.ExpiredJwtException | io.jsonwebtoken.UnsupportedJwtException |
+                 io.jsonwebtoken.MalformedJwtException | io.jsonwebtoken.SignatureException |
+                 IllegalArgumentException e) {
+            System.err.println("Token validation error: " + e.getMessage());
             return false;
         }
     }

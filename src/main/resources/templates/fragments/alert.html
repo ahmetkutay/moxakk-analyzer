@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+    <!-- Success Alert -->
+    <div th:fragment="success" class="mb-4 bg-green-50 border-l-4 border-green-500 p-4 text-green-700">
+        <p th:text="${success}">Operation was successful!</p>
+    </div>
+
+    <!-- Error Alert -->
+    <div th:fragment="error" class="mb-4 bg-red-50 border-l-4 border-red-500 p-4 text-red-700">
+        <p th:text="${error}">An error occurred!</p>
+    </div>
+
+    <!-- Info Alert -->
+    <div th:fragment="info" class="mb-4 bg-blue-50 border-l-4 border-blue-500 p-4 text-blue-700">
+        <p th:text="${info}">Information message</p>
+    </div>
+
+    <!-- Warning Alert -->
+    <div th:fragment="warning" class="mb-4 bg-yellow-50 border-l-4 border-yellow-500 p-4 text-yellow-700">
+        <p th:text="${warning}">Warning message</p>
+    </div>
+</body>
+</html>

@@ -7,10 +7,15 @@
 
         <!-- HTMX extensions -->
         <script>
-            // Add any HTMX event listeners here
+            // Add CSRF token to all HTMX requests
             document.body.addEventListener('htmx:configRequest', (event) => {
-                // Add CSRF token to HTMX requests if needed
-                // event.detail.headers['X-CSRF-TOKEN'] = '...';
+                // Get CSRF token from meta tag or cookie
+                const csrfToken = document.querySelector('meta[name="_csrf"]')?.getAttribute('content');
+                const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content');
+
+                if (csrfToken && csrfHeader) {
+                    event.detail.headers[csrfHeader] = csrfToken;
+                }
             });
 
             // Notification system

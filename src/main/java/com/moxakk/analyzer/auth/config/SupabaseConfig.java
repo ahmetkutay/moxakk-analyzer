@@ -1,11 +1,9 @@
 package com.moxakk.analyzer.auth.config;
 
-import io.github.supabase.CreateClientOptions;
-import io.github.supabase.SupabaseClient;
-import io.github.supabase.gotrue.GoTrueClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.reactive.function.client.WebClient;
 
 @Configuration
 public class SupabaseConfig {
@@ -17,13 +15,11 @@ public class SupabaseConfig {
     private String supabaseKey;
 
     @Bean
-    public SupabaseClient supabaseClient() {
-        return new SupabaseClient(supabaseUrl, supabaseKey,
-                                 new CreateClientOptions());
-    }
-
-    @Bean
-    public GoTrueClient goTrueClient(SupabaseClient supabaseClient) {
-        return supabaseClient.getAuth();
+    public WebClient supabaseWebClient() {
+        return WebClient.builder()
+            .baseUrl(supabaseUrl)
+            .defaultHeader("apikey", supabaseKey)
+            .defaultHeader("Content-Type", "application/json")
+            .build();
     }
 }

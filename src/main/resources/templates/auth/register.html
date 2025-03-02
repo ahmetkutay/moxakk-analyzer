@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-<head th:replace="fragments/head :: head('Analyzer - Register')">
+<head th:replace="~{fragments/head :: head('Analyzer - Register')}">
 </head>
 <body class="flex flex-col min-h-screen bg-gray-50">
-    <div th:replace="fragments/header :: header"></div>
+    <div th:replace="~{fragments/header :: header}"></div>
 
     <main class="flex-grow flex items-center justify-center py-12 px-4">
         <div class="max-w-md w-full bg-white rounded-lg shadow-lg overflow-hidden">
@@ -14,28 +14,64 @@
 
             <div class="p-6">
                 <!-- Alert message for errors -->
-                <div th:if="${error}" class="mb-4 bg-red-50 border-l-4 border-red-500 p-4 text-red-700">
-                    <p th:text="${error}"></p>
+                <div id="alert-container">
+                    <div th:if="${error}" class="mb-4 bg-red-50 border-l-4 border-red-500 p-4 text-red-700">
+                        <p th:text="${error}"></p>
+                    </div>
                 </div>
 
-                <form hx-post="/auth/register" hx-indicator="#register-indicator" class="space-y-4">
+                <form id="register-form"
+                      action="/auth/register"
+                      method="post"
+                      hx-post="/auth/register"
+                      hx-indicator="#register-indicator"
+                      hx-target="#alert-container"
+                      hx-swap="innerHTML"
+                      hx-on::after-request="if(event.detail.successful) window.location.href='/auth/login';"
+                      class="space-y-4">
+                    <!-- CSRF Token -->
+                    <input type="hidden" name="_csrf" th:value="${_csrf.token}" />
+
                     <div>
                         <label for="fullName" class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
                         <input type="text" id="fullName" name="fullName" required
+                               th:value="${registerRequest != null ? registerRequest.fullName : ''}"
                                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                        <div class="text-red-500 text-xs mt-1 hidden" id="fullName-error"></div>
                     </div>
 
                     <div>
                         <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
                         <input type="email" id="email" name="email" required
+                               th:value="${registerRequest != null ? registerRequest.email : ''}"
                                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                        <div class="text-red-500 text-xs mt-1 hidden" id="email-error"></div>
                     </div>
 
                     <div>
                         <label for="password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
                         <input type="password" id="password" name="password" required minlength="8"
                                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
-                        <p class="mt-1 text-xs text-gray-500">Password must be at least 8 characters long</p>
+                        <div class="text-red-500 text-xs mt-1 hidden" id="password-error"></div>
+
+                        <!-- Password strength meter -->
+                        <div class="mt-2">
+                            <div class="flex items-center">
+                                <span class="text-xs text-gray-500 w-24">Password strength:</span>
+                                <div class="flex-grow h-2 bg-gray-200 rounded-full overflow-hidden">
+                                    <div id="password-strength-meter" class="h-full bg-gray-400" style="width: 0%"></div>
+                                </div>
+                                <span id="password-strength-text" class="ml-2 text-xs text-gray-500">None</span>
+                            </div>
+                            <p class="mt-1 text-xs text-gray-500">Password must be at least 8 characters long and include uppercase, lowercase, numbers, and special characters</p>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="confirmPassword" class="block text-sm font-medium text-gray-700 mb-1">Confirm Password</label>
+                        <input type="password" id="confirmPassword" name="confirmPassword" required
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                        <div class="text-red-500 text-xs mt-1 hidden" id="confirmPassword-error"></div>
                     </div>
 
                     <div>
@@ -59,7 +95,142 @@
         </div>
     </main>
 
-    <div th:replace="fragments/footer :: footer"></div>
-    <div th:replace="fragments/scripts :: scripts"></div>
+    <div th:replace="~{fragments/footer :: footer}"></div>
+    <div th:replace="~{fragments/scripts :: scripts}"></div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('register-form');
+            const fullNameInput = document.getElementById('fullName');
+            const emailInput = document.getElementById('email');
+            const passwordInput = document.getElementById('password');
+            const confirmPasswordInput = document.getElementById('confirmPassword');
+            const fullNameError = document.getElementById('fullName-error');
+            const emailError = document.getElementById('email-error');
+            const passwordError = document.getElementById('password-error');
+            const confirmPasswordError = document.getElementById('confirmPassword-error');
+            const passwordStrengthMeter = document.getElementById('password-strength-meter');
+            const passwordStrengthText = document.getElementById('password-strength-text');
+
+            // Password strength checker
+            passwordInput.addEventListener('input', function() {
+                const password = passwordInput.value;
+                let strength = 0;
+                let strengthText = 'None';
+                let color = 'bg-gray-400';
+
+                if (password.length >= 8) strength += 1;
+                if (password.match(/[A-Z]/)) strength += 1;
+                if (password.match(/[a-z]/)) strength += 1;
+                if (password.match(/[0-9]/)) strength += 1;
+                if (password.match(/[^A-Za-z0-9]/)) strength += 1;
+
+                switch(strength) {
+                    case 0:
+                        strengthText = 'None';
+                        color = 'bg-gray-400';
+                        break;
+                    case 1:
+                        strengthText = 'Very Weak';
+                        color = 'bg-red-500';
+                        break;
+                    case 2:
+                        strengthText = 'Weak';
+                        color = 'bg-orange-500';
+                        break;
+                    case 3:
+                        strengthText = 'Medium';
+                        color = 'bg-yellow-500';
+                        break;
+                    case 4:
+                        strengthText = 'Strong';
+                        color = 'bg-green-500';
+                        break;
+                    case 5:
+                        strengthText = 'Very Strong';
+                        color = 'bg-green-600';
+                        break;
+                }
+
+                passwordStrengthMeter.style.width = (strength * 20) + '%';
+                passwordStrengthMeter.className = `h-full ${color}`;
+                passwordStrengthText.textContent = strengthText;
+            });
+
+            // Client-side validation
+            form.addEventListener('submit', function(e) {
+                let isValid = true;
+
+                // Validate full name
+                if (!fullNameInput.value) {
+                    fullNameError.textContent = 'Full name is required';
+                    fullNameError.classList.remove('hidden');
+                    isValid = false;
+                } else {
+                    fullNameError.classList.add('hidden');
+                }
+
+                // Validate email
+                if (!emailInput.value) {
+                    emailError.textContent = 'Email is required';
+                    emailError.classList.remove('hidden');
+                    isValid = false;
+                } else if (!/^\S+@\S+\.\S+$/.test(emailInput.value)) {
+                    emailError.textContent = 'Please enter a valid email address';
+                    emailError.classList.remove('hidden');
+                    isValid = false;
+                } else {
+                    emailError.classList.add('hidden');
+                }
+
+                // Validate password
+                if (!passwordInput.value) {
+                    passwordError.textContent = 'Password is required';
+                    passwordError.classList.remove('hidden');
+                    isValid = false;
+                } else if (passwordInput.value.length < 8) {
+                    passwordError.textContent = 'Password must be at least 8 characters long';
+                    passwordError.classList.remove('hidden');
+                    isValid = false;
+                } else {
+                    passwordError.classList.add('hidden');
+                }
+
+                // Validate confirm password
+                if (!confirmPasswordInput.value) {
+                    confirmPasswordError.textContent = 'Please confirm your password';
+                    confirmPasswordError.classList.remove('hidden');
+                    isValid = false;
+                } else if (confirmPasswordInput.value !== passwordInput.value) {
+                    confirmPasswordError.textContent = 'Passwords do not match';
+                    confirmPasswordError.classList.remove('hidden');
+                    isValid = false;
+                } else {
+                    confirmPasswordError.classList.add('hidden');
+                }
+
+                if (!isValid) {
+                    e.preventDefault();
+                }
+            });
+
+            // Clear error messages when input changes
+            fullNameInput.addEventListener('input', function() {
+                fullNameError.classList.add('hidden');
+            });
+
+            emailInput.addEventListener('input', function() {
+                emailError.classList.add('hidden');
+            });
+
+            passwordInput.addEventListener('input', function() {
+                passwordError.classList.add('hidden');
+            });
+
+            confirmPasswordInput.addEventListener('input', function() {
+                confirmPasswordError.classList.add('hidden');
+            });
+        });
+    </script>
 </body>
 </html>

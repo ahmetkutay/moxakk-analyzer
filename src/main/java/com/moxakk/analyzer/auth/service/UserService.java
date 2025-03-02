@@ -1,62 +1,79 @@
 package com.moxakk.analyzer.auth.service;
 
-import com.moxakk.analyzer.auth.dto.UserDto;
-import com.moxakk.analyzer.auth.model.User;
-import com.moxakk.analyzer.common.exception.ResourceNotFoundException;
+import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.UUID;
+
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
+import com.moxakk.analyzer.auth.dto.UserDto;
+import com.moxakk.analyzer.auth.model.User;
+import com.moxakk.analyzer.auth.repository.UserRepository;
+import com.moxakk.analyzer.common.exception.ResourceNotFoundException;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
+@RequiredArgsConstructor
+@Slf4j
 public class UserService {
 
-    // In a real application, this would connect to a repository
-    // For demonstration purposes, we're using an in-memory list
-    private final List<User> users = Collections.synchronizedList(new java.util.ArrayList<>());
+    private final UserRepository userRepository;
 
     /**
      * Create a new user
      */
     public UserDto createUser(User user) {
-        // In a real application, this would save to a database
-        users.add(user);
-        return mapToDto(user);
+        log.info("Creating user with email: {}", user.getEmail());
+        User savedUser = userRepository.save(user);
+        return mapToDto(savedUser);
     }
 
     /**
      * Get user by email
      */
     public User getUserByEmail(String email) {
-        return users.stream()
-                .filter(user -> user.getEmail().equals(email))
-                .findFirst()
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + email));
+        log.info("Getting user by email: {}", email);
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> {
+                    log.error("User not found with email: {}", email);
+                    return new ResourceNotFoundException("User not found with email: " + email);
+                });
     }
 
     /**
      * Get user by ID
      */
     public UserDto getUserById(UUID id) {
-        User user = users.stream()
-                .filter(u -> u.getId().equals(id))
-                .findFirst()
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
+        log.info("Getting user by ID: {}", id);
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> {
+                    log.error("User not found with id: {}", id);
+                    return new ResourceNotFoundException("User not found with id: " + id);
+                });
 
         return mapToDto(user);
+    }
+
+    /**
+     * Check if user exists by email
+     */
+    public boolean existsByEmail(String email) {
+        return userRepository.existsByEmail(email);
     }
 
     /**
      * Update user's last login time
      */
     public void updateLastLogin(String email) {
+        log.info("Updating last login for user: {}", email);
         User user = getUserByEmail(email);
         user.setLastLogin(LocalDateTime.now());
+        userRepository.save(user);
     }
 
     /**

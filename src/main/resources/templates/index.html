@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
-<head th:replace="fragments/head :: head('Analyzer - Home')">
+<head th:replace="~{fragments/head :: head('Analyzer - Home')}">
 </head>
 <body class="flex flex-col min-h-screen bg-gray-50">
-    <div th:replace="fragments/header :: header"></div>
+    <div th:replace="~{fragments/header :: header}"></div>
 
     <main class="flex-grow">
         <!-- Hero Section -->
@@ -61,7 +61,7 @@
         </section>
     </main>
 
-    <div th:replace="fragments/footer :: footer"></div>
-    <div th:replace="fragments/scripts :: scripts"></div>
+    <div th:replace="~{fragments/footer :: footer}"></div>
+    <div th:replace="~{fragments/scripts :: scripts}"></div>
 </body>
 </html>
