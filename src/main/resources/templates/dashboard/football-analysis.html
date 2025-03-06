@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/head :: head('Football Match Analysis')}">
+</head>
+<body class="flex flex-col min-h-screen bg-gray-50">
+    <div th:replace="~{fragments/header :: header}"></div>
+
+    <main class="flex-grow container mx-auto px-4 py-8">
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h1 class="text-2xl font-bold text-gray-800 mb-4">Football Match Analysis</h1>
+            <p class="text-gray-600 mb-6">Enter the home team and away team to analyze a football match and generate AI-powered commentary.</p>
+
+            <div class="mb-8">
+                <form id="matchAnalysisForm" class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="homeTeam" class="block text-sm font-medium text-gray-700 mb-1">Home Team</label>
+                            <input type="text" id="homeTeam" name="homeTeam"
+                                   class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                   placeholder="e.g., Manchester United" required>
+                        </div>
+                        <div>
+                            <label for="awayTeam" class="block text-sm font-medium text-gray-700 mb-1">Away Team</label>
+                            <input type="text" id="awayTeam" name="awayTeam"
+                                   class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                   placeholder="e.g., Liverpool" required>
+                        </div>
+                    </div>
+                    <div class="flex justify-center">
+                        <button type="submit"
+                                class="px-6 py-3 bg-indigo-600 text-white font-medium rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors">
+                            Analyze Match
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Loading Indicator -->
+            <div id="loadingIndicator" class="hidden flex flex-col items-center justify-center py-8">
+                <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mb-4"></div>
+                <p class="text-gray-600">Analyzing match data and generating commentary...</p>
+                <p class="text-gray-500 text-sm mt-2">This may take a few minutes. Please be patient.</p>
+            </div>
+
+            <!-- Results Section -->
+            <div id="resultsSection" class="hidden">
+                <div class="border-t border-gray-200 pt-6">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4">Match Analysis Results</h2>
+
+                    <!-- Match Details -->
+                    <div class="bg-gray-50 rounded-lg p-4 mb-6">
+                        <h3 class="text-lg font-medium text-gray-800 mb-2">Match Details</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <p class="text-sm text-gray-600">Home Team:</p>
+                                <p id="resultHomeTeam" class="font-medium text-gray-800"></p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-600">Away Team:</p>
+                                <p id="resultAwayTeam" class="font-medium text-gray-800"></p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-600">Venue:</p>
+                                <p id="resultVenue" class="font-medium text-gray-800"></p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-600">Weather:</p>
+                                <p id="resultWeather" class="font-medium text-gray-800"></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Team Lineups -->
+                    <div class="mb-6">
+                        <h3 class="text-lg font-medium text-gray-800 mb-2">Team Lineups</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="bg-gray-50 rounded-lg p-4">
+                                <h4 id="homeTeamName" class="font-medium text-gray-800 mb-2"></h4>
+                                <p class="text-sm text-gray-600 mb-1">Formation: <span id="homeFormation"></span></p>
+                                <ul id="homeLineup" class="list-disc list-inside text-gray-700"></ul>
+                            </div>
+                            <div class="bg-gray-50 rounded-lg p-4">
+                                <h4 id="awayTeamName" class="font-medium text-gray-800 mb-2"></h4>
+                                <p class="text-sm text-gray-600 mb-1">Formation: <span id="awayFormation"></span></p>
+                                <ul id="awayLineup" class="list-disc list-inside text-gray-700"></ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Commentary -->
+                    <div class="mb-6">
+                        <h3 class="text-lg font-medium text-gray-800 mb-4">AI Commentary</h3>
+                        <div class="space-y-4">
+                            <div id="commentaryContainer"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Error Message -->
+            <div id="errorMessage" class="hidden bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg"></div>
+        </div>
+    </main>
+
+    <div th:replace="~{fragments/footer :: footer}"></div>
+    <div th:replace="~{fragments/scripts :: scripts}"></div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('matchAnalysisForm');
+            const loadingIndicator = document.getElementById('loadingIndicator');
+            const resultsSection = document.getElementById('resultsSection');
+            const errorMessage = document.getElementById('errorMessage');
+
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+
+                // Get form data
+                const homeTeam = document.getElementById('homeTeam').value;
+                const awayTeam = document.getElementById('awayTeam').value;
+
+                // Show loading indicator
+                loadingIndicator.classList.remove('hidden');
+                resultsSection.classList.add('hidden');
+                errorMessage.classList.add('hidden');
+
+                // Make API request
+                fetch('/api/get-match', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        homeTeam: homeTeam,
+                        awayTeam: awayTeam
+                    })
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        return response.json().then(data => {
+                            throw new Error(data.error || 'An error occurred while analyzing the match');
+                        });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Hide loading indicator
+                    loadingIndicator.classList.add('hidden');
+
+                    // Populate results
+                    populateResults(data);
+
+                    // Show results section
+                    resultsSection.classList.remove('hidden');
+                })
+                .catch(error => {
+                    // Hide loading indicator
+                    loadingIndicator.classList.add('hidden');
+
+                    // Show error message
+                    errorMessage.textContent = error.message;
+                    errorMessage.classList.remove('hidden');
+                });
+            });
+
+            function populateResults(data) {
+                // Match details
+                document.getElementById('resultHomeTeam').textContent = data.matchData.homeTeam;
+                document.getElementById('resultAwayTeam').textContent = data.matchData.awayTeam;
+                document.getElementById('resultVenue').textContent = data.matchData.venue;
+
+                // Weather
+                const weather = data.matchData.weather;
+                document.getElementById('resultWeather').textContent =
+                    `${weather.condition}, ${weather.temperature}°C, Humidity: ${weather.humidity}%, Wind: ${weather.windSpeed} m/s`;
+
+                // Team lineups
+                document.getElementById('homeTeamName').textContent = data.matchData.homeTeam;
+                document.getElementById('awayTeamName').textContent = data.matchData.awayTeam;
+
+                document.getElementById('homeFormation').textContent = data.matchData.teamLineups.home.formation;
+                document.getElementById('awayFormation').textContent = data.matchData.teamLineups.away.formation;
+
+                const homeLineupEl = document.getElementById('homeLineup');
+                const awayLineupEl = document.getElementById('awayLineup');
+
+                // Clear previous lineups
+                homeLineupEl.innerHTML = '';
+                awayLineupEl.innerHTML = '';
+
+                // Add home team players
+                data.matchData.teamLineups.home.players.forEach(player => {
+                    const li = document.createElement('li');
+                    li.textContent = `${player.number}. ${player.name} (${player.position})`;
+                    homeLineupEl.appendChild(li);
+                });
+
+                // Add away team players
+                data.matchData.teamLineups.away.players.forEach(player => {
+                    const li = document.createElement('li');
+                    li.textContent = `${player.number}. ${player.name} (${player.position})`;
+                    awayLineupEl.appendChild(li);
+                });
+
+                // Commentary
+                const commentaryContainer = document.getElementById('commentaryContainer');
+                commentaryContainer.innerHTML = '';
+
+                // Add commentary from each AI provider
+                data.commentary.forEach((comment, index) => {
+                    const providers = ['Gemini', 'OpenAI', 'Cohere', 'Anthropic', 'Mistral'];
+                    const provider = providers[index] || `Provider ${index + 1}`;
+
+                    const div = document.createElement('div');
+                    div.className = 'bg-white border border-gray-200 rounded-lg p-4';
+
+                    const header = document.createElement('h4');
+                    header.className = 'font-medium text-gray-800 mb-2';
+                    header.textContent = `${provider} Analysis`;
+
+                    const content = document.createElement('p');
+                    content.className = 'text-gray-700';
+                    content.textContent = comment;
+
+                    div.appendChild(header);
+                    div.appendChild(content);
+                    commentaryContainer.appendChild(div);
+                });
+            }
+        });
+    </script>
+</body>
+</html>
